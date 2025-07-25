@@ -105,12 +105,17 @@ function handleYouTubePageChange(pageInfo: YouTubePageInfo) {
     return;
   }
   
-  setTimeout(() => checkChannelAndShowWarning(detectYouTubePage()), 100);
+  setTimeout(() => checkChannelAndShowWarnings(pageInfo), 100);
 }
 
 
-// Check channel against database and show warning if needed
-function checkChannelAndShowWarning(pageInfo: YouTubePageInfo) {
+// Check channel against database and show warning as required
+function checkChannelAndShowWarnings(pageInfo: YouTubePageInfo) {
+  // TODO: remove redundant check, better typing?
+  if (!(pageInfo.pageType === 'channel' || pageInfo.pageType === 'video')) {
+    return
+  }
+
   console.debug('[EnshitRadar] 🔍 Checking channel info:', pageInfo);
   
   if (!pageInfo.channelId && !pageInfo.channelName) {
@@ -134,14 +139,15 @@ function checkChannelAndShowWarning(pageInfo: YouTubePageInfo) {
   
   console.debug('[EnshitRadar] ⚠️ Flagged channel detected:', channelRating);
   
-  // Create and show warning (we already checked pageType above)
-  if (pageInfo.pageType === 'channel' || pageInfo.pageType === 'video') {
-    showChannelWarning(channelRating, pageInfo.pageType);
+  
+  if (currentSettings.showLargeBanners) {
+    showLargeChannelWarning(channelRating, pageInfo.pageType);
   }
+  
 }
 
-// Show warning banner for flagged channel
-function showChannelWarning(channelRating: any, pageType: 'channel' | 'video') {
+// Show large warning banner for flagged channel
+function showLargeChannelWarning(channelRating: any, pageType: 'channel' | 'video') {
   try {
     // Get warning configuration
     const warningConfig = channelDatabase.getWarningConfig(channelRating);
