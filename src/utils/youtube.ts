@@ -5,18 +5,7 @@ import { YouTubePageInfo } from '@/types';
  */
 export function detectYouTubePage(): YouTubePageInfo {
   const url = window.location.href;
-  const hostname = window.location.hostname;
-  
-  // Check if we're on YouTube
-  const isYouTube = hostname === 'www.youtube.com' || hostname === 'youtube.com' || hostname === 'm.youtube.com';
-  
-  if (!isYouTube) {
-    return {
-      isYouTube: false,
-      pageType: 'other'
-    };
-  }
-  
+
   const pathname = window.location.pathname;
   const searchParams = new URLSearchParams(window.location.search);
   
@@ -25,7 +14,6 @@ export function detectYouTubePage(): YouTubePageInfo {
     // Channel page
     const channelInfo = extractChannelInfo();
     return {
-      isYouTube: true,
       pageType: 'channel',
       channelId: channelInfo.channelId,
       channelName: channelInfo.channelName,
@@ -36,7 +24,6 @@ export function detectYouTubePage(): YouTubePageInfo {
     const videoId = searchParams.get('v');
     const channelInfo = extractChannelInfoFromVideo();
     return {
-      isYouTube: true,
       pageType: 'video',
       videoId: videoId || undefined,
       channelId: channelInfo.channelId,
@@ -46,7 +33,6 @@ export function detectYouTubePage(): YouTubePageInfo {
   }
   
   return {
-    isYouTube: true,
     pageType: 'other'
   };
 }

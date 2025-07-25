@@ -73,7 +73,6 @@ export interface WarningConfig {
 
 // YouTube page detection
 export interface YouTubePageInfo {
-  isYouTube: boolean;
   pageType: 'channel' | 'video' | 'other';
   channelId?: string;
   channelName?: string;
