@@ -10,7 +10,8 @@ interface SettingsStore {
 }
 
 const defaultSettings: ExtensionSettings = {
-  enabled: true
+  enabled: true,
+  showLargeBanners: true,
 };
 
 export const useSettingsStore = create<SettingsStore>((set, get) => ({

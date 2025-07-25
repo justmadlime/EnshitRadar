@@ -1,6 +1,8 @@
 // Background service worker for Chrome extension
 import { ExtensionMessage, MessageType, ExtensionSettings } from '@/types';
 import { setupMessageListener } from '@/utils/messaging';
+import { useSettingsStore } from '@/stores/settingsStore';
+
 
 console.log('[EnshitRadar] 🚀 Background service worker loaded');
 
@@ -129,18 +131,7 @@ async function handleCleanupSessionData() {
 
 // Initialize extension settings
 async function initializeExtension() {
-  try {
-    const result = await chrome.storage.sync.get(['settings']);
-    
-    if (!result.settings) {
-      const defaultSettings: ExtensionSettings = {
-        enabled: true
-      };
-      
-      await chrome.storage.sync.set({ settings: defaultSettings });
-      console.log('[EnshitRadar] Default settings initialized');
-    }
-    
+  try {    
     // Always cleanup session data on startup (in case extension was disabled/enabled)
     console.log('[EnshitRadar] 🧹 Cleaning up stale session data on startup');
     await cleanupStaleSessionData();
