@@ -7,6 +7,7 @@ export interface ExtensionMessage {
 
 export interface ExtensionSettings {
   enabled: boolean;
+  showLargeBanners: boolean;
 }
 
 export interface TabInfo {

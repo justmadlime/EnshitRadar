@@ -4,6 +4,7 @@ import { sendToBackground, setupMessageListener } from '@/utils/messaging';
 import { detectYouTubePage, watchForYouTubeChanges } from '@/utils/youtube';
 import { channelDatabase } from '@/utils/channelDatabase';
 import { WarningBanner, addWarningStyles } from '@/components/WarningBanner';
+import { useSettingsStore } from '@/stores/settingsStore';
 
 // Prevent execution in sandboxed frames
 if (!(window.top !== window.self && window.frameElement)) { // 
@@ -45,19 +46,18 @@ async function initializeContentScript() {
 // Load initial settings from storage
 async function loadInitialSettings() {
   try {
-    const result = await chrome.storage.sync.get(['settings']);
-    if (result.settings) {
-      currentSettings = result.settings;
-      console.debug('[EnshitRadar] ✅ Initial settings loaded:', currentSettings);
-    } else {
-      // Use default settings if none exist
-      currentSettings = { enabled: true };
-      console.debug('[EnshitRadar] 🔧 Using default settings:', currentSettings);
+    let settingsStore = useSettingsStore.getState();
+    if (!settingsStore.settings) {
+      await settingsStore.loadSettings();
+      settingsStore = useSettingsStore.getState();
     }
+
+    currentSettings = settingsStore.settings
+    // Load settings
+    
+    
   } catch (error) {
     console.error('[EnshitRadar] ❌ Failed to load initial settings:', error);
-    // Fallback to default settings
-    currentSettings = { enabled: true };
   }
 }
 
