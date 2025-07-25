@@ -425,12 +425,7 @@ function setupEvents() {
     }
   });
 
-  // Initialize when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeContentScript);
-  } else {
-    initializeContentScript();
-  }
+  window.addEventListener('load',() => setTimeout(initializeContentScript, 500))
 
   // Cleanup on page unload
   window.addEventListener('beforeunload', () => {
