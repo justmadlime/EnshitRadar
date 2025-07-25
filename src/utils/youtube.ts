@@ -56,6 +56,13 @@ export function detectYouTubePage(): YouTubePageInfo {
  */
 function extractChannelInfo(): { channelId?: string; channelName?: string } {
   const pathname = window.location.pathname;
+  const currentUrl = window.location.href;
+  
+  // Only extract if we're actually on a channel page URL
+  if (!pathname.startsWith('/channel/') && !pathname.startsWith('/c/') && !pathname.startsWith('/@')) {
+    console.log('[EnshitRadar] Not on a channel page URL:', pathname);
+    return {};
+  }
   
   // Try to get channel ID from URL
   let channelId: string | undefined;
@@ -91,6 +98,13 @@ function extractChannelInfo(): { channelId?: string; channelName?: string } {
     }
   }
   
+  // Additional validation: channel name should be reasonable
+  if (channelName && (channelName.length < 2 || channelName.length > 100)) {
+    console.log('[EnshitRadar] Invalid channel name detected:', channelName);
+    channelName = undefined;
+  }
+  
+  console.log('[EnshitRadar] Channel page extraction result:', { channelId, channelName, url: currentUrl });
   return { channelId, channelName };
 }
 
@@ -98,28 +112,41 @@ function extractChannelInfo(): { channelId?: string; channelName?: string } {
  * Extract channel information from video page
  */
 function extractChannelInfoFromVideo(): { channelId?: string; channelName?: string; channelUrl?: string } {
+  const currentUrl = window.location.href;
+  const videoId = new URLSearchParams(window.location.search).get('v');
+  
+  // Only extract if we're actually on a video page
+  if (!videoId || !window.location.pathname.startsWith('/watch')) {
+    console.log('[EnshitRadar] Not on a video page or no video ID:', { videoId, pathname: window.location.pathname });
+    return {};
+  }
+  
   let channelId: string | undefined;
   let channelName: string | undefined;
   let channelUrl: string | undefined;
   
-  // Try to get channel link element
+  // Try to get channel link element (be more specific to avoid false positives)
   const channelLinkSelectors = [
-    '.ytd-video-owner-renderer .yt-simple-endpoint[href*="/channel/"]',
-    '.ytd-video-owner-renderer .yt-simple-endpoint[href*="/@"]',
-    '.ytd-video-owner-renderer .yt-simple-endpoint[href*="/c/"]',
-    '.ytd-video-owner-renderer .yt-simple-endpoint[href*="/user/"]',
-    '#upload-info #channel-name a',
-    '.ytd-channel-name a',
-    'a[href*="/channel/"]',
-    'a[href*="/@"]',
-    'a[href*="/c/"]',
-    'a[href*="/user/"]',
-    '#owner-sub-count + .yt-simple-endpoint.style-scope.yt-formatted-string'
+    '.ytd-video-owner-renderer .yt-simple-endpoint[href*="/channel/"]:not([href*="/search"])',
+    '.ytd-video-owner-renderer .yt-simple-endpoint[href*="/@"]:not([href*="/search"])',
+    '.ytd-video-owner-renderer .yt-simple-endpoint[href*="/c/"]:not([href*="/search"])',
+    '#upload-info #channel-name a[href*="/channel/"]',
+    '#upload-info #channel-name a[href*="/@"]',
+    '.ytd-channel-name a[href*="/channel/"]',
+    '.ytd-channel-name a[href*="/@"]'
   ];
   
   let channelLinkElement: Element | null = null;
   for (const selector of channelLinkSelectors) {
-    channelLinkElement = document.querySelector(selector);
+    const elements = Array.from(document.querySelectorAll(selector));
+    // Take the first one that's actually visible and in the video owner area
+    for (const element of elements) {
+      const rect = element.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        channelLinkElement = element;
+        break;
+      }
+    }
     if (channelLinkElement) break;
   }
   
@@ -150,35 +177,50 @@ function extractChannelInfoFromVideo(): { channelId?: string; channelName?: stri
     channelName = channelLinkElement.textContent?.trim();
   }
   
-  // Alternative method: look for channel name in video metadata
+  // Alternative method: look for channel name in video metadata (more specific selectors)
   if (!channelName) {
     const nameSelectors = [
       '.ytd-video-owner-renderer .ytd-channel-name yt-formatted-string',
       '#upload-info #channel-name .yt-simple-endpoint',
-      '.ytd-channel-name .yt-simple-endpoint',
-      '.ytd-video-owner-renderer .yt-formatted-string',
-      '#channel-name .yt-formatted-string',
-      '[id="channel-name"] a',
-      '.ytd-channel-name span'
+      '.ytd-channel-name .yt-simple-endpoint'
     ];
     
     for (const selector of nameSelectors) {
       const element = document.querySelector(selector);
       if (element?.textContent?.trim()) {
-        channelName = element.textContent.trim();
-        break;
+        const text = element.textContent.trim();
+        // Additional validation for channel names
+        if (text.length >= 2 && text.length <= 100 && !text.includes('http')) {
+          channelName = text;
+          break;
+        }
       }
     }
   }
   
-  // Try to get from URL parameter as fallback
+  // Try to get from URL parameter as fallback (very reliable)
   if (!channelName) {
     const urlParams = new URLSearchParams(window.location.search);
     const abChannel = urlParams.get('ab_channel');
     if (abChannel) {
       channelName = decodeURIComponent(abChannel).replace(/–/g, ' – ').replace(/\s+/g, ' ').trim();
+      console.log('[EnshitRadar] Using ab_channel parameter:', channelName);
     }
   }
+  
+  // Additional validation: channel name should be reasonable
+  if (channelName && (channelName.length < 2 || channelName.length > 100 || channelName.includes('http'))) {
+    console.log('[EnshitRadar] Invalid channel name detected on video page:', channelName);
+    channelName = undefined;
+  }
+  
+  console.log('[EnshitRadar] Video page extraction result:', { 
+    channelId, 
+    channelName, 
+    channelUrl, 
+    videoId, 
+    currentUrl 
+  });
   
   return { channelId, channelName, channelUrl };
 }

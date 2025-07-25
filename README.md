@@ -2,12 +2,16 @@
 
 A Chrome extension that detects YouTube channels compromised by private equity or experiencing significant quality decline. Get warned before watching content from channels that may no longer represent their original values.
 
+**[Join Discord](https://discord.gg/brCNpJcx)**
+
 ## 🔗 Quick Links
 
 - **🏪 [Chrome Web Store](https://chrome.google.com/webstore/detail/enshitradar/)** - Install the extension
 - **💬 [Discord Community](https://discord.gg/brCNpJcx)** - Join to discuss and propose new ideas
 - **📺 [YouTube Channel](https://www.youtube.com/@justmadlime)** - Updates & tutorials
 - **🚀 [Submit Channel](https://github.com/justmadlime/EnshitRadar/tree/main)** - Add new channels via PR
+
+<img width="1200" height="400" alt="image" src="https://github.com/user-attachments/assets/078c3774-a32d-4200-adab-8dbd8e85dbc5" />
 
 ## 📖 User Guide
 

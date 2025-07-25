@@ -300,14 +300,23 @@ This information helps you make informed decisions about the content you consume
 
     let targetContainer: Element | null = null;
 
-    if (pageType === 'channel') {
-      // Insert above the entire channel header area
+        if (pageType === 'channel') {
+      // More comprehensive selectors for both direct loads and SPA navigation
       const channelHeaderSelectors = [
+        // New YouTube layout (direct load)
+        'ytd-browse[page-subtype="channels"] #header',
+        'ytd-browse[page-subtype="channels"] .page-header-banner',
+        // Channel header containers (works for both)
         '#channel-header-container',
         '.ytd-c4-tabbed-header-renderer',
         '#channel-header',
+        // Newer selectors
         'ytd-channel-header-view-model-renderer',
-        '#page-header'
+        '#page-header .page-header-view-model-wiz__page-header-content',
+        '#page-header',
+        // Broader container selectors for direct loads
+        'ytd-browse[page-subtype="channels"] ytd-page-header-renderer',
+        'ytd-browse #header.ytd-browse'
       ];
       
       // Find the channel header element first
@@ -320,27 +329,48 @@ This information helps you make informed decisions about the content you consume
         }
       }
       
-              if (channelHeaderElement && channelHeaderElement.parentNode) {
-          // Insert the banner above the entire channel header
-          channelHeaderElement.parentNode.insertBefore(this.element, channelHeaderElement);
-          // Only adjust width for channel pages
-          this.adjustChannelBannerWidth();
-          return true;
-        }
+      if (channelHeaderElement && channelHeaderElement.parentNode) {
+        // Insert the banner above the entire channel header
+        channelHeaderElement.parentNode.insertBefore(this.element, channelHeaderElement);
+        // Only adjust width for channel pages
+        this.adjustChannelBannerWidth();
+        return true;
+      }
       
-      // Fallback: try to insert at the beginning of main content containers
+      // Enhanced fallback: try to insert at the beginning of main content containers
       const fallbackSelectors = [
+        // Try main content areas in order of preference
+        'ytd-browse[page-subtype="channels"] #primary',
         '#primary-inner',
         '#primary .ytd-browse',
-        'ytd-browse[page-subtype="channels"] #primary',
-        '#contents.ytd-browse'
+        'ytd-browse #primary',
+        '#contents.ytd-browse',
+        // Last resort - main page container
+        'ytd-browse[page-subtype="channels"]',
+        'ytd-two-column-browse-results-renderer'
       ];
       
       for (const selector of fallbackSelectors) {
         targetContainer = document.querySelector(selector);
         if (targetContainer) {
           console.log('[EnshitRadar] 📍 Found fallback container:', selector);
-          break;
+          
+          // For the main containers, try to find any header element and insert before it
+          const headerInContainer = targetContainer.querySelector('#header, #channel-header-container, .ytd-c4-tabbed-header-renderer, ytd-page-header-renderer');
+          if (headerInContainer) {
+            targetContainer.insertBefore(this.element, headerInContainer);
+            console.log('[EnshitRadar] 📍 Inserted before header in container');
+          } else {
+            // Insert at the beginning of the container
+            if (targetContainer.firstChild) {
+              targetContainer.insertBefore(this.element, targetContainer.firstChild);
+            } else {
+              targetContainer.appendChild(this.element);
+            }
+          }
+          
+          this.adjustChannelBannerWidth();
+          return true;
         }
       }
     } else if (pageType === 'video') {

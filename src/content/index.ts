@@ -14,6 +14,8 @@ if (window.top !== window.self && window.frameElement) {
   let currentSettings: ExtensionSettings | null = null;
   let currentWarningBanner: WarningBanner | null = null;
   let youtubeObserver: (MutationObserver & { cleanup?: () => void }) | null = null;
+  let currentPageInfo: YouTubePageInfo | null = null;
+  let isProcessingChannel = false;
 
   // Initialize content script
   async function initializeContentScript() {
@@ -88,44 +90,128 @@ if (window.top !== window.self && window.frameElement) {
 
   // Handle YouTube page changes
   function handleYouTubePageChange(pageInfo: YouTubePageInfo) {
-    // Clear existing warning
+    console.log('[EnshitRadar] 🔄 Page change detected:', pageInfo);
+    console.log('[EnshitRadar] 🌐 Current URL:', window.location.href);
+    
+    // ALWAYS clear existing warning first, regardless of page type or processing state
     if (currentWarningBanner) {
+      console.log('[EnshitRadar] 🗑️ Clearing existing warning banner');
       currentWarningBanner.remove();
       currentWarningBanner = null;
     }
     
-    // Only process channel and video pages
-    if (pageInfo.pageType !== 'channel' && pageInfo.pageType !== 'video') {
+    // Prevent multiple processing of the same page
+    if (isProcessingChannel) {
+      console.log('[EnshitRadar] Already processing channel, skipping duplicate');
       return;
     }
+    
+    // Check if this is the same page we already processed
+    if (currentPageInfo && 
+        currentPageInfo.isYouTube === pageInfo.isYouTube &&
+        currentPageInfo.pageType === pageInfo.pageType &&
+        currentPageInfo.channelId === pageInfo.channelId &&
+        currentPageInfo.videoId === pageInfo.videoId &&
+        window.location.href === currentPageInfo.channelUrl) {
+      console.log('[EnshitRadar] Same page detected, skipping processing');
+      return;
+    }
+    
+    // Update current page info
+    currentPageInfo = pageInfo;
+    isProcessingChannel = true;
+    
+    // Only process channel and video pages  
+    if (pageInfo.pageType !== 'channel' && pageInfo.pageType !== 'video') {
+      console.log('[EnshitRadar] 🚫 Not a channel or video page, stopping processing');
+      isProcessingChannel = false;
+      return;
+    }
+    
+    console.log('[EnshitRadar] ✅ Processing', pageInfo.pageType, 'page for channel:', pageInfo.channelName || 'Unknown');
     
     // Check if extension is enabled
     if (currentSettings && !currentSettings.enabled) {
       console.log('[EnshitRadar] Extension disabled, skipping warning');
+      isProcessingChannel = false;
       return;
     }
     
     // If settings haven't loaded yet, skip for now
     if (!currentSettings) {
       console.log('[EnshitRadar] Settings not loaded yet, skipping warning');
+      isProcessingChannel = false;
       return;
     }
     
-    // Try immediately, then retry with longer delays to handle slow-loading content
-    // The navigation detection now handles multiple retry attempts, but we'll keep this as a fallback
-    setTimeout(() => checkChannelAndShowWarning(pageInfo), 100);
-    setTimeout(() => checkChannelAndShowWarning(pageInfo), 800);
-    setTimeout(() => checkChannelAndShowWarning(pageInfo), 2000);
-    setTimeout(() => checkChannelAndShowWarning(pageInfo), 4000);
+    // Try with increasing delays, but only once per page change
+    let attempts = 0;
+    const maxAttempts = 6; // Increased attempts for better reliability
+    
+    const tryCheckChannel = () => {
+      attempts++;
+      
+      // Get fresh page info for each attempt (DOM may have loaded more content)
+      const freshPageInfo = detectYouTubePage();
+      const success = checkChannelAndShowWarning(freshPageInfo);
+      
+      if (!success && attempts < maxAttempts) {
+        // If failed and we haven't reached max attempts, try again with increasing delay
+        const delay = attempts * 1000; // 1s, 2s, 3s, 4s, 5s, 6s
+        console.log(`[EnshitRadar] Attempt ${attempts} failed, retrying in ${delay}ms`);
+        setTimeout(tryCheckChannel, delay);
+      } else {
+        // Either succeeded or reached max attempts
+        if (!success) {
+          console.log('[EnshitRadar] All attempts failed, giving up');
+        }
+        isProcessingChannel = false;
+      }
+    };
+    
+    // Wait 1 second for the page/video to load fully before starting checks
+    setTimeout(tryCheckChannel, 1000);
   }
 
   // Check channel against database and show warning if needed
-  function checkChannelAndShowWarning(pageInfo: YouTubePageInfo) {
+  function checkChannelAndShowWarning(pageInfo: YouTubePageInfo): boolean {
     console.log('[EnshitRadar] 🔍 Checking channel info:', pageInfo);
+    console.log('[EnshitRadar] 🌐 Current URL:', window.location.href);
+    
+    // Double-check: ensure we don't have a stale banner from a previous page
+    if (currentWarningBanner) {
+      console.log('[EnshitRadar] 🧹 Found stale banner, removing it');
+      currentWarningBanner.remove();
+      currentWarningBanner = null;
+    }
     
     if (!pageInfo.channelId && !pageInfo.channelName) {
       console.log('[EnshitRadar] ❌ No channel information available');
-      return;
+      return false;
+    }
+    
+    // Additional validation: ensure we have meaningful channel data
+    if (pageInfo.channelName && pageInfo.channelName.length < 2) {
+      console.log('[EnshitRadar] ❌ Channel name too short, likely invalid:', pageInfo.channelName);
+      return false;
+    }
+    
+    // Check if we already have a warning banner displayed
+    if (currentWarningBanner) {
+      console.log('[EnshitRadar] ✅ Warning banner already displayed, skipping');
+      return true;
+    }
+    
+    // Double-check: if we're on a video page, make sure the channel info matches the current video
+    if (pageInfo.pageType === 'video') {
+      const currentVideoId = new URLSearchParams(window.location.search).get('v');
+      if (pageInfo.videoId && currentVideoId && pageInfo.videoId !== currentVideoId) {
+        console.log('[EnshitRadar] ❌ Video ID mismatch - stale data:', {
+          detected: pageInfo.videoId,
+          current: currentVideoId
+        });
+        return false;
+      }
     }
     
     // Check if channel is in our database
@@ -133,21 +219,34 @@ if (window.top !== window.self && window.frameElement) {
     
     if (!channelRating) {
       console.log('[EnshitRadar] ✅ Channel not in database:', pageInfo.channelName, 'ID:', pageInfo.channelId);
-      return;
+      return true; // Return true as this is a successful "no warning needed" case
+    }
+    
+    // Additional verification: make sure the detected channel name matches what we found
+    if (channelRating.channelName && pageInfo.channelName && 
+        channelRating.channelName.toLowerCase() !== pageInfo.channelName.toLowerCase()) {
+      console.log('[EnshitRadar] ❌ Channel name mismatch - potential false positive:', {
+        database: channelRating.channelName,
+        detected: pageInfo.channelName
+      });
+      return false;
     }
     
     // Check if channel was dismissed for this session
     if (channelRating.channelId && WarningBanner.isChannelDismissed(channelRating.channelId)) {
       console.log('[EnshitRadar] 🔇 Channel warning dismissed for session:', channelRating.channelName);
-      return;
+      return true; // Return true as this is handled correctly
     }
     
-    console.log('[EnshitRadar] ⚠️ Flagged channel detected:', channelRating);
+    console.log('[EnshitRadar] ⚠️ Flagged channel detected and verified:', channelRating);
     
     // Create and show warning (we already checked pageType above)
     if (pageInfo.pageType === 'channel' || pageInfo.pageType === 'video') {
       showChannelWarning(channelRating, pageInfo.pageType);
+      return true;
     }
+    
+    return false;
   }
 
   // Show warning banner for flagged channel
