@@ -28,7 +28,7 @@ async function initializeOptions() {
 }
 
 function updateUI() {
-  const settings = useSettingsStore.getState().settings;
+  const currentSettings = useSettingsStore.getState().settings;
   const loading = useSettingsStore.getState().loading;
   
   // Update loading state
@@ -36,16 +36,19 @@ function updateUI() {
   
   // Update form controls
   const enabledToggle = document.getElementById('enabled-toggle') as HTMLInputElement;
-  enabledToggle.checked = settings.enabled;
+  const enableLargeBannersToggle = document.getElementById('enable-large-banners-toggle') as HTMLInputElement;
+
+  enabledToggle.checked = currentSettings.enabled
+  enableLargeBannersToggle.checked = currentSettings.showLargeBanners  
 }
 
 function setupEventListeners() {
   // Setting controls
   const enabledToggle = document.getElementById('enabled-toggle') as HTMLInputElement;
-  
+  const enableLargeBannersToggle = document.getElementById('enable-large-banners-toggle') as HTMLInputElement;
   // Event listeners
-  enabledToggle.addEventListener('change', handleEnabledChange);
-  
+  enabledToggle.addEventListener('change', handleEnabledChanged);
+  enableLargeBannersToggle.addEventListener('change', handleLargeBannersChanged)
   // Action buttons
   document.getElementById('export-button')?.addEventListener('click', handleExport);
   document.getElementById('clear-data-button')?.addEventListener('click', handleClearData);
@@ -60,10 +63,23 @@ function setupEventListeners() {
   useSettingsStore.subscribe(updateUI);
 }
 
-async function handleEnabledChange(event: Event) {
+function handleEnabledChanged(event: Event) {
+  handleToggleChange(event, "enabled")
+}
+
+function handleLargeBannersChanged(event: Event) {
+  handleToggleChange(event, "showLargeBanners")
+}
+
+async function handleToggleChange(event: Event, settingName: string) {
   const checkbox = event.target as HTMLInputElement;
   try {
-    await useSettingsStore.getState().updateSettings({ enabled: checkbox.checked });
+    const settingsStore = useSettingsStore.getState()
+    let settings = settingsStore.settings
+    
+    settings[settingName] = checkbox.checked
+    
+    await settingsStore.updateSettings(settings);
     showMessage('Settings saved successfully', 'success');
   } catch (error) {
     console.error('Failed to save settings:', error);
@@ -72,6 +88,8 @@ async function handleEnabledChange(event: Event) {
     checkbox.checked = !checkbox.checked;
   }
 }
+
+
 
 function showMessage(message: string, type: 'success' | 'error') {
   const statusMessage = document.getElementById('status-message') as HTMLElement;
