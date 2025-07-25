@@ -229,16 +229,17 @@ export function watchForYouTubeChanges(callback: (pageInfo: YouTubePageInfo) => 
       currentUrl = newUrl;
       navigationDetected = true;
       
-      console.log(`[EnshitRadar] 🚀 Navigation detected via ${source}:`, newUrl);
+      console.debug(`[EnshitRadar] 🚀 Navigation detected via ${source}:`, newUrl);
       
       // Clear any existing timeouts and check multiple times with increasing delays
       // This handles cases where content loads slowly
       const checkAndCallback = (attempt: number, delay: number) => {
         setTimeout(() => {
           const newPageInfo = detectYouTubePage();
+          console.debug("New Page Info: ",newPageInfo)
           const hasChanged = JSON.stringify(newPageInfo) !== JSON.stringify(currentPageInfo);
           
-          console.log(`[EnshitRadar] 🔍 Check attempt ${attempt} (${delay}ms):`, {
+          console.debug(`[EnshitRadar] 🔍 Check attempt ${attempt} (${delay}ms):`, {
             hasChanged,
             newPageInfo,
             currentPageInfo
