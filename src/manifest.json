@@ -14,7 +14,7 @@
         "*://www.youtube.com/*",
         "*://m.youtube.com/*"
       ],
-      "js": ["content.js"],
+      "js": ["youtube.js"],
       "run_at": "document_end",
       "all_frames": false
     }
