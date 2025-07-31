@@ -151,11 +151,6 @@ function checkChannelAndShowWarnings(pageInfo: YouTubePageInfo) {
   
 }
 
-function getChannelDataElement(): HTMLElement | null {
-  const channelDataElement = document.getElementById("upload-info");
-  return channelDataElement
-}
-
 /**
  * Show warning tag for main channel
  * @param channelRating 
@@ -163,18 +158,26 @@ function getChannelDataElement(): HTMLElement | null {
  */
 function showChannelWarningTag(channelRating: any, pageType: 'channel' | 'video') {
   try {
-    const warningConfig = channelDatabase.getWarningConfig(channelRating);
+    const warningConfig = channelDatabase.getWarningConfig(channelRating)
     
-    let mainWarningTag = new WarningTag();
-    mainWarningTag.create(warningConfig, channelRating);
+    let mainWarningTag = new WarningTag()
+    mainWarningTag.create(warningConfig, channelRating)
     
-    let channelDataElement = getChannelDataElement();
-    if (!channelDataElement) {
-      console.error('[EnshitRadar] Failed to find channel data HTML element');  
+    let tagParentElement = null
+
+    if (pageType === 'video') {
+      tagParentElement = document.getElementById("upload-info")
+    } else {
+      tagParentElement = document.getElementsByTagName("yt-flexible-actions-view-model")[0]
+    }
+
+    if (!tagParentElement) {
+      console.error('[EnshitRadar] Failed to find channel data HTML element')
       return
     }
 
-    mainWarningTag.insertInto(channelDataElement)
+    mainWarningTag.insertInto(tagParentElement)
+    
 
     console.debug('[EnshitRadar] ✅ Warning Tag displayed for:', channelRating.channelName);
     
