@@ -130,7 +130,7 @@ function checkRecommendedVideos() {
     let channelName = videoMetadata.querySelector('yt-content-metadata-view-model>div.yt-content-metadata-view-model-wiz__metadata-row')
     
     
-    // TODO: Get channel data for each video
+    // TODO: Get channel data for each video using API
     
     let channelRating: ChannelRating = {
       channelId: "",
