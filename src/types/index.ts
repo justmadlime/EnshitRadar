@@ -73,7 +73,7 @@ export interface WarningDisplayConfig {
 
 // YouTube page detection
 export interface YouTubePageInfo {
-  pageType: 'channel' | 'video' | 'other';
+  pageType: 'channel' | 'video' | 'mainpage' | 'playlist' | 'other';
   channelId?: string;
   channelName?: string;
   videoId?: string;

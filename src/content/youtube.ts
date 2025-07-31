@@ -1,5 +1,5 @@
 // Content script that runs on web pages
-import { ExtensionMessage, MessageType, ExtensionSettings, YouTubePageInfo } from '@/types';
+import { ExtensionMessage, MessageType, ExtensionSettings, YouTubePageInfo, ChannelRating } from '@/types';
 import { sendToBackground, setupMessageListener } from '@/utils/messaging';
 import { detectYouTubePage, watchForYouTubeChanges } from '@/utils/youtube';
 import { channelDatabase } from '@/utils/channelDatabase';
@@ -18,6 +18,8 @@ let currentSettings: ExtensionSettings | null = null;
 let currentWarningBanner: WarningBanner | null = null;
 let youtubeObserver: (MutationObserver & { cleanup?: () => void }) | null = null;
 let mainWarningTag: WarningTag | null = null;
+
+let secondaryWarningTags: Array<WarningTag> = []
 
 // Initialize content script
 async function initializeContentScript() {
@@ -81,19 +83,16 @@ function initializeYouTubeDetection() {
   });
 }
 
+function clearWarningReferences() {
+  currentWarningBanner = null;
+  mainWarningTag = null;
+  secondaryWarningTags = []
+}
+
 // Handle YouTube page changes
 function handleYouTubePageChange(pageInfo: YouTubePageInfo) {
-  // Clear existing warning
-  if (currentWarningBanner) {
-    currentWarningBanner.remove();
-    currentWarningBanner = null;
-  }
-  
-  // Only process channel and video pages
-  if (pageInfo.pageType !== 'channel' && pageInfo.pageType !== 'video') {
-    return;
-  }
-  
+  clearWarningReferences()
+
   // Check if extension is enabled
   if (currentSettings && !currentSettings.enabled) {
     console.debug('[EnshitRadar] Extension disabled, skipping warning');
@@ -106,7 +105,69 @@ function handleYouTubePageChange(pageInfo: YouTubePageInfo) {
     return;
   }
   
-  setTimeout(() => checkChannelAndShowWarnings(pageInfo), 100);
+  setTimeout(() => {
+    checkChannelAndShowWarnings(pageInfo)
+
+    switch (pageInfo.pageType) {
+      case "video":
+        checkRecommendedVideos()
+        break;
+      case "mainpage":
+        checkMainPageVideos()
+
+    }
+  }, 100);
+  
+}
+
+function checkRecommendedVideos() {
+  let recommendedSection = document.getElementById('related')
+
+  let recommendedVideos = recommendedSection.getElementsByTagName('yt-lockup-view-model')
+  for (let videoIndex = 0; videoIndex < recommendedVideos.length; videoIndex++) {
+    let video = recommendedVideos.item(videoIndex)
+    let videoMetadata = video.querySelector('div>div>yt-lockup-metadata-view-model')
+    let channelName = videoMetadata.querySelector('yt-content-metadata-view-model>div.yt-content-metadata-view-model-wiz__metadata-row')
+    
+    
+    // TODO: Get channel data for each video
+    
+    let channelRating: ChannelRating = {
+      channelId: "",
+      channelName: "",
+      level: "low",
+      description: "",
+      dateAdded: "",
+      source: "",
+    }
+
+    switch (videoIndex % 4) {
+      case 0:
+        channelRating.level = "low"
+        break;
+      case 1:
+        channelRating.level = "middle"
+        break;
+      case 2:
+        channelRating.level = "high"
+        break;
+      case 3:
+        channelRating.level = "confirmed"
+        break;
+    }
+
+    const warningConfig = channelDatabase.getWarningConfig(channelRating)
+    
+    let warningTag = new WarningTag()
+    warningTag.createShort(warningConfig, channelRating)
+    
+    secondaryWarningTags.push(warningTag)
+    warningTag.insertInto(channelName as HTMLElement)
+  } 
+}
+
+function checkMainPageVideos() {
+
 }
 
 
@@ -146,9 +207,8 @@ function checkChannelAndShowWarnings(pageInfo: YouTubePageInfo) {
   }
 
   if (true) { //TODO: Setting for small tags
-    showChannelWarningTag(channelRating, pageInfo.pageType)
+    showMainChannelWarningTag(channelRating, pageInfo.pageType)
   }
-  
 }
 
 /**
@@ -156,7 +216,7 @@ function checkChannelAndShowWarnings(pageInfo: YouTubePageInfo) {
  * @param channelRating 
  * @param pageType 
  */
-function showChannelWarningTag(channelRating: any, pageType: 'channel' | 'video') {
+function showMainChannelWarningTag(channelRating: ChannelRating, pageType: 'channel' | 'video') {
   try {
     const warningConfig = channelDatabase.getWarningConfig(channelRating)
     
@@ -271,19 +331,18 @@ function cleanupSessionData() {
       console.debug(`[EnshitRadar] 🗑️ Removed session storage key: ${key}`);
     });
     
-    // Remove warning banners if any are currently displayed
-    const existingWarnings = document.querySelectorAll('[data-enshit-radar-warning]');
-    existingWarnings.forEach(warning => {
-      warning.remove();
-      console.debug('[EnshitRadar] 🗑️ Removed warning banner from DOM');
-    });
-    
-    // Clean up current warning banner instance
-    if (currentWarningBanner) {
-      currentWarningBanner.remove();
-      currentWarningBanner = null;
-      console.debug('[EnshitRadar] 🗑️ Removed current warning banner instance');
-    }
+    // Remove all existing warnings
+    currentWarningBanner.remove()
+    currentWarningBanner = null
+
+    mainWarningTag.remove()
+    mainWarningTag = null
+
+    secondaryWarningTags.forEach((tag) => tag.remove())
+    secondaryWarningTags = []
+
+    console.debug('[EnshitRadar] 🗑️ Removed existing warning elements');
+
     
     console.debug('[EnshitRadar] ✅ Session cleanup completed');
     

@@ -19,7 +19,9 @@ export function detectYouTubePage(): YouTubePageInfo {
       channelName: channelInfo.channelName,
       channelUrl: url
     };
-  } else if (pathname === '/watch' && searchParams.has('v')) {
+  } 
+  
+  if (pathname === '/watch' && searchParams.has('v')) {
     // Video page
     const videoId = searchParams.get('v');
     const channelInfo = extractChannelInfoFromVideo();
@@ -30,8 +32,20 @@ export function detectYouTubePage(): YouTubePageInfo {
       channelName: channelInfo.channelName,
       channelUrl: channelInfo.channelUrl
     };
-  }
+  } 
   
+  if (pathname === '') {
+    return {
+      pageType: 'mainpage',
+    };
+  } 
+  
+  if (pathname === 'playlist') {
+    return {
+      pageType: 'playlist',
+    };
+  }
+
   return {
     pageType: 'other'
   };

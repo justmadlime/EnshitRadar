@@ -8,7 +8,7 @@ export class WarningTag {
   private containerId = 'enshit-radar-warning';
 
   /**
-   * Create warning banner HTML
+   * Create warning tag HTML
    */
   public create(config: WarningDisplayConfig, channelRating: ChannelRating): HTMLElement {
     const tag = document.createElement('div');
@@ -25,6 +25,39 @@ export class WarningTag {
         title="Click to learn more"
       >
         <h3>${config.icon} ${config.title}</h3>
+      </div>
+    `;
+
+    tag.addEventListener('click', () => {
+      this.handleLearnMore(channelRating)
+    })
+
+
+    this.element = tag;
+    return tag;
+  }
+
+  /**
+   * Create a slightly modified warning tag with only the icon for smaller locations
+   * @param config 
+   * @param channelRating 
+   * @returns 
+   */
+  public createShort(config: WarningDisplayConfig, channelRating: ChannelRating): HTMLElement {
+    const tag = document.createElement('div');
+    tag.id = this.containerId;
+    tag.className = 'enshit-radar-warning';
+    tag.setAttribute('data-enshit-radar-warning', 'true');
+    tag.setAttribute('data-channel-id', channelRating.channelId || '');
+    tag.setAttribute('data-level', channelRating.level);
+    
+    tag.innerHTML = `
+      <div 
+        class="enshit-radar-warning-tag" 
+        style="color: ${config.color}; border-color: ${config.borderColor}; background-color: ${config.backgroundColor}; padding: 4px; margin-left: 5px"
+        title="Click to learn more"
+      >
+        <h3>${config.icon}</h3>
       </div>
     `;
 
