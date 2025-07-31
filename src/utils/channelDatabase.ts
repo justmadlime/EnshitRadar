@@ -1,4 +1,4 @@
-import { ChannelDatabase, ChannelRating, ShittificationLevel, WarningConfig } from '@/types';
+import { ChannelDatabase, ChannelRating, ShittificationLevel, WarningDisplayConfig } from '@/types';
 import channelData from '@/data/channels.json';
 
 /**
@@ -68,10 +68,9 @@ export class ChannelDatabaseService {
   /**
    * Get warning configuration for a shittification level
    */
-  public getWarningConfig(rating: ChannelRating): WarningConfig {
-    const configs: Record<ShittificationLevel, Omit<WarningConfig, 'description'>> = {
+  public getWarningConfig(rating: ChannelRating): WarningDisplayConfig {
+    const configs: Record<ShittificationLevel, Omit<WarningDisplayConfig, 'description'>> = {
       low: {
-        level: 'low',
         color: '#2d5a0d',
         backgroundColor: '#f6ffed',
         borderColor: '#b7eb8f',
@@ -79,7 +78,6 @@ export class ChannelDatabaseService {
         title: 'Caution Advisory'
       },
       middle: {
-        level: 'middle',
         color: '#d48806',
         backgroundColor: '#fffbe6',
         borderColor: '#ffe58f',
@@ -87,7 +85,6 @@ export class ChannelDatabaseService {
         title: 'Quality Warning'
       },
       high: {
-        level: 'high',
         color: '#d4380d',
         backgroundColor: '#fff2e8',
         borderColor: '#ffbb96',
@@ -95,7 +92,6 @@ export class ChannelDatabaseService {
         title: 'Channel Alert'
       },
       confirmed: {
-        level: 'confirmed',
         color: '#ffffff',
         backgroundColor: '#ff4d4f',
         borderColor: '#ff7875',

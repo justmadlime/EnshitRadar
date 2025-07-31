@@ -1,4 +1,4 @@
-import { WarningConfig, ChannelRating } from '@/types';
+import { WarningDisplayConfig, ChannelRating } from '@/types';
 
 /**
  * Create and manage warning banners for YouTube pages
@@ -10,7 +10,7 @@ export class WarningBanner {
   /**
    * Create warning banner HTML
    */
-  public create(config: WarningConfig, channelRating: ChannelRating): HTMLElement {
+  public create(config: WarningDisplayConfig, channelRating: ChannelRating): HTMLElement {
     // Remove existing banner first
     this.remove();
 
@@ -60,7 +60,7 @@ export class WarningBanner {
   /**
    * Apply CSS styles to the banner
    */
-  private applyStyles(banner: HTMLElement, config: WarningConfig): void {
+  private applyStyles(banner: HTMLElement, config: WarningDisplayConfig): void {
     // Main banner styles - full width by default (good for video pages)
     Object.assign(banner.style, {
       position: 'relative',

@@ -5,6 +5,7 @@ import { detectYouTubePage, watchForYouTubeChanges } from '@/utils/youtube';
 import { channelDatabase } from '@/utils/channelDatabase';
 import { WarningBanner, addWarningStyles } from '@/components/WarningBanner';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { WarningTag } from '@/components/WarningTag';
 
 // Prevent execution in sandboxed frames
 if (!(window.top !== window.self && window.frameElement)) { // 
@@ -16,7 +17,7 @@ if (!(window.top !== window.self && window.frameElement)) { //
 let currentSettings: ExtensionSettings | null = null;
 let currentWarningBanner: WarningBanner | null = null;
 let youtubeObserver: (MutationObserver & { cleanup?: () => void }) | null = null;
-
+let mainWarningTag: WarningTag | null = null;
 
 // Initialize content script
 async function initializeContentScript() {
@@ -143,7 +144,43 @@ function checkChannelAndShowWarnings(pageInfo: YouTubePageInfo) {
   if (currentSettings.showLargeBanners) {
     showLargeChannelWarning(channelRating, pageInfo.pageType);
   }
+
+  if (true) { //TODO: Setting for small tags
+    showChannelWarningTag(channelRating, pageInfo.pageType)
+  }
   
+}
+
+function getChannelDataElement(): HTMLElement | null {
+  const channelDataElement = document.getElementById("upload-info");
+  return channelDataElement
+}
+
+/**
+ * Show warning tag for main channel
+ * @param channelRating 
+ * @param pageType 
+ */
+function showChannelWarningTag(channelRating: any, pageType: 'channel' | 'video') {
+  try {
+    const warningConfig = channelDatabase.getWarningConfig(channelRating);
+    
+    let mainWarningTag = new WarningTag();
+    mainWarningTag.create(warningConfig, channelRating);
+    
+    let channelDataElement = getChannelDataElement();
+    if (!channelDataElement) {
+      console.error('[EnshitRadar] Failed to find channel data HTML element');  
+      return
+    }
+
+    mainWarningTag.insertInto(channelDataElement)
+
+    console.debug('[EnshitRadar] ✅ Warning Tag displayed for:', channelRating.channelName);
+    
+  } catch (error) {
+    console.error('[EnshitRadar] Failed to show channel warning tag:', error);
+  }
 }
 
 // Show large warning banner for flagged channel

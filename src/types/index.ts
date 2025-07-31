@@ -62,7 +62,7 @@ export interface ChannelDatabase {
   version: string;
 }
 
-export interface WarningConfig {
+export interface WarningDisplayConfig {
   color: string;
   backgroundColor: string;
   borderColor: string;
