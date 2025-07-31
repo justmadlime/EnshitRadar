@@ -11,7 +11,8 @@ module.exports = (env, argv) => {
       background: './src/background/index.ts',
       youtube: './src/content/youtube.ts',
       popup: './src/popup/index.ts',
-      options: './src/options/index.ts'
+      options: './src/options/index.ts',
+      bannerstyle: './src/components/WarningBanner.css'
     },
     output: {
       path: path.resolve(__dirname, 'dist'),
