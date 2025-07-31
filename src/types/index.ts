@@ -63,7 +63,6 @@ export interface ChannelDatabase {
 }
 
 export interface WarningConfig {
-  level: ShittificationLevel;
   color: string;
   backgroundColor: string;
   borderColor: string;

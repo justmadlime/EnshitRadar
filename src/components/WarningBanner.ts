@@ -19,7 +19,7 @@ export class WarningBanner {
     banner.className = 'enshit-radar-warning';
     banner.setAttribute('data-enshit-radar-warning', 'true');
     banner.setAttribute('data-channel-id', channelRating.channelId || '');
-    banner.setAttribute('data-level', config.level);
+    banner.setAttribute('data-level', channelRating.level);
     
     banner.innerHTML = `
       <div class="enshit-radar-warning-content">
@@ -36,7 +36,7 @@ export class WarningBanner {
           <p class="enshit-radar-warning-description">${config.description}</p>
           <div class="enshit-radar-warning-details">
             <span class="enshit-radar-warning-channel">Channel: ${channelRating.channelName}</span>
-            <span class="enshit-radar-warning-level">Level: ${config.level.toUpperCase()}</span>
+            <span class="enshit-radar-warning-level">Level: ${channelRating.level.toUpperCase()}</span>
             ${channelRating.source ? `<span class="enshit-radar-warning-source">Source: ${channelRating.source}</span>` : ''}
           </div>
         </div>
