@@ -14,6 +14,7 @@ module.exports = (env, argv) => {
       youtube: ['webextension-polyfill', './src/content/youtube.ts'],
       popup: ['webextension-polyfill', './src/popup/index.ts'],
       options: ['webextension-polyfill', './src/options/index.ts']
+      bannerstyle: ['webextension-polyfill', './src/components/WarningBanner.css']
     },
     output: {
       path: path.resolve(__dirname, outputDir),

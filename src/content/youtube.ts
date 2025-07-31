@@ -3,7 +3,7 @@ import { ExtensionMessage, MessageType, ExtensionSettings, YouTubePageInfo } fro
 import { sendToBackground, setupMessageListener } from '@/utils/messaging';
 import { detectYouTubePage, watchForYouTubeChanges } from '@/utils/youtube';
 import { channelDatabase } from '@/utils/channelDatabase';
-import { WarningBanner, addWarningStyles } from '@/components/WarningBanner';
+import { WarningBanner } from '@/components/WarningBanner';
 import { useSettingsStore } from '@/stores/settingsStore';
 
 // Prevent execution in sandboxed frames
@@ -26,9 +26,6 @@ async function initializeContentScript() {
     
     // Notify background that content script is loaded
     await sendToBackground(MessageType.CONTENT_LOADED, { url: window.location.href });
-    
-    // Set up styles for warnings
-    addWarningStyles();
     
     // Set up content-specific functionality
     setupPageObserver();
