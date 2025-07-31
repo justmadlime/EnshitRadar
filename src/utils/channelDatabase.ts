@@ -34,30 +34,30 @@ export class ChannelDatabaseService {
    * Check if a channel is in the database
    */
   public checkChannel(channelId?: string, channelName?: string): ChannelRating | null {
-    console.log('[EnshitRadar] 🔎 Database lookup - ID:', channelId, 'Name:', channelName);
+    console.debug('[EnshitRadar] 🔎 Database lookup - ID:', channelId, 'Name:', channelName);
     
     // First try to match by channel ID (most reliable)
     if (channelId) {
       const channelByUid = this.channelMap.get(channelId.toLowerCase());
       if (channelByUid) {
-        console.log('[EnshitRadar] ✅ Found by ID:', channelByUid);
+        console.debug('[EnshitRadar] ✅ Found by ID:', channelByUid);
         return channelByUid;
       }
     }
 
     // If no channel ID, use direct name comparison
     if (channelName) {
-      console.log('[EnshitRadar] 🔤 Searching by exact name:', channelName);
+      console.debug('[EnshitRadar] 🔤 Searching by exact name:', channelName);
       
       // Direct name comparison - no normalization
       for (const channel of this.database.channels) {
         if (channel.channelName === channelName) {
-          console.log('[EnshitRadar] ✅ Found by exact name match:', channel);
+          console.debug('[EnshitRadar] ✅ Found by exact name match:', channel);
           return channel;
         }
       }
       
-      console.log('[EnshitRadar] ❌ No exact name match found. Available names:', this.database.channels.map(c => c.channelName));
+      console.debug('[EnshitRadar] ❌ No exact name match found. Available names:', this.database.channels.map(c => c.channelName));
     }
 
     return null;
