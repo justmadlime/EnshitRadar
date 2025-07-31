@@ -46,7 +46,7 @@ function extractChannelInfo(): { channelId?: string; channelName?: string } {
   
   // Only extract if we're actually on a channel page URL
   if (!pathname.startsWith('/channel/') && !pathname.startsWith('/c/') && !pathname.startsWith('/@')) {
-    console.log('[EnshitRadar] Not on a channel page URL:', pathname);
+    console.debug('[EnshitRadar] Not on a channel page URL:', pathname);
     return {};
   }
   
@@ -86,11 +86,11 @@ function extractChannelInfo(): { channelId?: string; channelName?: string } {
   
   // Additional validation: channel name should be reasonable
   if (channelName && (channelName.length < 2 || channelName.length > 100)) {
-    console.log('[EnshitRadar] Invalid channel name detected:', channelName);
+    console.debug('[EnshitRadar] Invalid channel name detected:', channelName);
     channelName = undefined;
   }
   
-  console.log('[EnshitRadar] Channel page extraction result:', { channelId, channelName, url: currentUrl });
+  console.debug('[EnshitRadar] Channel page extraction result:', { channelId, channelName, url: currentUrl });
   return { channelId, channelName };
 }
 
@@ -103,7 +103,7 @@ function extractChannelInfoFromVideo(): { channelId?: string; channelName?: stri
   
   // Only extract if we're actually on a video page
   if (!videoId || !window.location.pathname.startsWith('/watch')) {
-    console.log('[EnshitRadar] Not on a video page or no video ID:', { videoId, pathname: window.location.pathname });
+    console.debug('[EnshitRadar] Not on a video page or no video ID:', { videoId, pathname: window.location.pathname });
     return {};
   }
   
@@ -190,17 +190,17 @@ function extractChannelInfoFromVideo(): { channelId?: string; channelName?: stri
     const abChannel = urlParams.get('ab_channel');
     if (abChannel) {
       channelName = decodeURIComponent(abChannel).replace(/–/g, ' – ').replace(/\s+/g, ' ').trim();
-      console.log('[EnshitRadar] Using ab_channel parameter:', channelName);
+      console.debug('[EnshitRadar] Using ab_channel parameter:', channelName);
     }
   }
   
   // Additional validation: channel name should be reasonable
   if (channelName && (channelName.length < 2 || channelName.length > 100 || channelName.includes('http'))) {
-    console.log('[EnshitRadar] Invalid channel name detected on video page:', channelName);
+    console.debug('[EnshitRadar] Invalid channel name detected on video page:', channelName);
     channelName = undefined;
   }
   
-  console.log('[EnshitRadar] Video page extraction result:', { 
+  console.debug('[EnshitRadar] Video page extraction result:', { 
     channelId, 
     channelName, 
     channelUrl, 
