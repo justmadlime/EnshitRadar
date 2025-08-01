@@ -1,0 +1,49 @@
+version: 2
+updates:
+  # Enable version updates for npm packages
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '10:00'
+    open-pull-requests-limit: 10
+    reviewers:
+      - 'justmadlime'
+    assignees:
+      - 'justmadlime'
+    commit-message:
+      prefix: 'deps'
+      prefix-development: 'deps-dev'
+      include: 'scope'
+    groups:
+      typescript:
+        patterns:
+          - 'typescript'
+          - '@types/*'
+          - 'ts-*'
+      webpack:
+        patterns:
+          - 'webpack*'
+          - '*-webpack-*'
+          - '*-loader'
+      eslint:
+        patterns:
+          - '*eslint*'
+          - '@typescript-eslint/*'
+      minor-updates:
+        update-types:
+          - 'minor'
+          - 'patch'
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '10:00'
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: 'ci'
+      include: 'scope'

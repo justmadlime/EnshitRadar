@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discord Community
+    url: https://discord.gg/brCNpJcx
+    about: Join our Discord server for general questions and community support
+  - name: 📖 Documentation
+    url: https://github.com/justmadlime/EnshitRadar#readme
+    about: Check the README for setup instructions and usage information
+  - name: 🛡️ Security Issue
+    url: https://github.com/justmadlime/EnshitRadar/security/advisories/new
+    about: Report a security vulnerability privately

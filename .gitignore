@@ -4,6 +4,8 @@ pnpm-lock.yaml
 
 # Build output
 dist/
+dist-chrome/
+dist-firefox/
 *.zip
 
 # Development
