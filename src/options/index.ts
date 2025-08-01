@@ -1,5 +1,8 @@
+// Options page script for the Chrome extension
+import { MessageType } from '@/types';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { ExtensionSettings, MessageType } from '@/types';
+import { channelDatabase } from '@/utils/channelDatabase';
+import { browser } from '@/utils/browser';
 
 console.log('⚙️ Options page loaded');
 
@@ -29,7 +32,7 @@ async function initializeOptions() {
 
 function updateUI() {
   const currentSettings = useSettingsStore.getState().settings;
-  const loading = useSettingsStore.getState().loading;
+  const loading = useSettingsStore.getState().isLoading;
   
   // Update loading state
   document.body.classList.toggle('loading', loading);
@@ -131,8 +134,8 @@ async function handleExport() {
 async function handleClearData() {
   if (confirm('Are you sure you want to clear all extension data? This will reset everything to defaults and cannot be undone.')) {
     try {
-      await chrome.storage.sync.clear();
-      await chrome.storage.local.clear();
+      await browser.storage.sync.clear();
+      await browser.storage.local.clear();
       await useSettingsStore.getState().resetSettings();
       updateUI();
       showMessage('All data cleared successfully', 'success');
@@ -146,13 +149,13 @@ async function handleClearData() {
 async function handleCleanupSession() {
   try {
     // Send cleanup message to all active tabs
-    const tabs = await chrome.tabs.query({});
+    const tabs = await browser.tabs.query({});
     let cleanedTabs = 0;
     
     const cleanupPromises = tabs.map(async (tab) => {
       if (tab.id) {
         try {
-          await chrome.tabs.sendMessage(tab.id, {
+          await browser.tabs.sendMessage(tab.id, {
             type: MessageType.CLEANUP_SESSION_DATA,
             payload: { reason: 'manual_cleanup' }
           });
@@ -175,15 +178,15 @@ async function handleCleanupSession() {
 
 function handleDiscordClick(event: Event) {
   event.preventDefault();
-  chrome.tabs.create({ url: 'https://discord.gg/brCNpJcx' });
+  browser.tabs.create({ url: 'https://discord.gg/brCNpJcx' });
 }
 
 function handleYouTubeClick(event: Event) {
   event.preventDefault();
-  chrome.tabs.create({ url: 'https://www.youtube.com/@justmadlime' });
+  browser.tabs.create({ url: 'https://www.youtube.com/@justmadlime' });
 }
 
 function handleGitHubClick(event: Event) {
   event.preventDefault();
-  chrome.tabs.create({ url: 'https://github.com/justmadlime/EnshitRadar' });
+  browser.tabs.create({ url: 'https://github.com/justmadlime/EnshitRadar' });
 } 

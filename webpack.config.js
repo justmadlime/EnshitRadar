@@ -5,16 +5,18 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production';
+  const browser = process.env.BROWSER || 'chrome';
+  const outputDir = `dist-${browser}`;
   
   return {
     entry: {
-      background: './src/background/index.ts',
-      youtube: './src/content/youtube.ts',
-      popup: './src/popup/index.ts',
-      options: './src/options/index.ts'
+      background: ['webextension-polyfill', './src/background/index.ts'],
+      youtube: ['webextension-polyfill', './src/content/youtube.ts'],
+      popup: ['webextension-polyfill', './src/popup/index.ts'],
+      options: ['webextension-polyfill', './src/options/index.ts']
     },
     output: {
-      path: path.resolve(__dirname, 'dist'),
+      path: path.resolve(__dirname, outputDir),
       filename: '[name].js',
       clean: true
     },
@@ -34,7 +36,10 @@ module.exports = (env, argv) => {
     plugins: [
       new CopyPlugin({
         patterns: [
-          { from: 'src/manifest.json', to: 'manifest.json' },
+          { 
+            from: `src/manifest-${browser}.json`, 
+            to: 'manifest.json' 
+          },
           { from: 'src/assets', to: 'assets', noErrorOnMissing: true },
           { from: 'src/data', to: 'data', noErrorOnMissing: true }
         ]

@@ -1,4 +1,5 @@
 import { ExtensionMessage, MessageType, MessagePayload } from '@/types';
+import { browser, type Tab, type MessageSender } from '@/utils/browser';
 
 /**
  * Send message to background script
@@ -7,17 +8,8 @@ export async function sendToBackground<T extends MessageType>(
   type: T,
   payload?: MessagePayload[T]
 ): Promise<any> {
-  return new Promise((resolve, reject) => {
-    const message: ExtensionMessage = { type, payload };
-    
-    chrome.runtime.sendMessage(message, (response) => {
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError.message));
-      } else {
-        resolve(response);
-      }
-    });
-  });
+  const message: ExtensionMessage = { type, payload };
+  return await browser.runtime.sendMessage(message);
 }
 
 /**
@@ -28,43 +20,31 @@ export async function sendToContent<T extends MessageType>(
   type: T,
   payload?: MessagePayload[T]
 ): Promise<any> {
-  return new Promise((resolve, reject) => {
-    const message: ExtensionMessage = { type, payload };
-    
-    chrome.tabs.sendMessage(tabId, message, (response) => {
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError.message));
-      } else {
-        resolve(response);
-      }
-    });
-  });
+  const message: ExtensionMessage = { type, payload };
+  return await browser.tabs.sendMessage(tabId, message);
 }
 
 /**
  * Set up message listener
  */
 export function setupMessageListener(
-  handler: (message: ExtensionMessage, sender: chrome.runtime.MessageSender) => Promise<any>
+  handler: (message: ExtensionMessage, sender: MessageSender) => Promise<any>
 ) {
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    handler(message, sender)
-      .then(sendResponse)
-      .catch((error) => {
-        console.error('[EnshitRadar] Message handler error:', error);
-        sendResponse({ error: error.message });
-      });
-    
-    // Return true to indicate we'll send a response asynchronously
-    return true;
+  browser.runtime.onMessage.addListener(async (message, sender) => {
+    try {
+      return await handler(message, sender);
+    } catch (error) {
+      console.error('[EnshitRadar] Message handler error:', error);
+      return { error: error instanceof Error ? error.message : 'Unknown error' };
+    }
   });
 }
 
 /**
  * Get current active tab
  */
-export async function getCurrentTab(): Promise<chrome.tabs.Tab> {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+export async function getCurrentTab(): Promise<Tab> {
+  const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
   return tab;
 }
 
