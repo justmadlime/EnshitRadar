@@ -1,0 +1,129 @@
+name: Version Bump
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      custom_version:
+        description: 'Custom version (optional, overrides version_type)'
+        required: false
+        type: string
+
+jobs:
+  bump-version:
+    name: Bump Version
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '8'
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Get current version
+        id: current_version
+        run: |
+          CURRENT=$(node -p "require('./package.json').version")
+          echo "current=$CURRENT" >> $GITHUB_OUTPUT
+
+      - name: Calculate new version
+        id: new_version
+        run: |
+          if [ -n "${{ github.event.inputs.custom_version }}" ]; then
+            NEW_VERSION="${{ github.event.inputs.custom_version }}"
+          else
+            # Simple version bumping logic
+            CURRENT="${{ steps.current_version.outputs.current }}"
+            IFS='.' read -ra VERSION_PARTS <<< "$CURRENT"
+            MAJOR=${VERSION_PARTS[0]}
+            MINOR=${VERSION_PARTS[1]}
+            PATCH=${VERSION_PARTS[2]}
+            
+            case "${{ github.event.inputs.version_type }}" in
+              "major")
+                MAJOR=$((MAJOR + 1))
+                MINOR=0
+                PATCH=0
+                ;;
+              "minor")
+                MINOR=$((MINOR + 1))
+                PATCH=0
+                ;;
+              "patch")
+                PATCH=$((PATCH + 1))
+                ;;
+            esac
+            
+            NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          fi
+
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update package.json
+        run: |
+          npm version ${{ steps.new_version.outputs.version }} --no-git-tag-version
+
+      - name: Update Chrome manifest
+        run: |
+          sed -i 's/"version": "[^"]*"/"version": "${{ steps.new_version.outputs.version }}"/' src/manifest-chrome.json
+
+      - name: Update Firefox manifest
+        run: |
+          sed -i 's/"version": "[^"]*"/"version": "${{ steps.new_version.outputs.version }}"/' src/manifest-firefox.json
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: bump version to v${{ steps.new_version.outputs.version }}'
+          title: 'chore: bump version to v${{ steps.new_version.outputs.version }}'
+          body: |
+            ## Version Bump to v${{ steps.new_version.outputs.version }}
+
+            This PR bumps the version from v${{ steps.current_version.outputs.current }} to v${{ steps.new_version.outputs.version }}.
+
+            ### Changes
+            - Updated `package.json` version
+            - Updated `src/manifest-chrome.json` version  
+            - Updated `src/manifest-firefox.json` version
+
+            ### Next Steps
+            After merging this PR:
+            1. Create a git tag: `git tag v${{ steps.new_version.outputs.version }}`
+            2. Push the tag: `git push origin v${{ steps.new_version.outputs.version }}`
+            3. The CI/CD pipeline will automatically create a GitHub release
+
+          branch: version-bump-v${{ steps.new_version.outputs.version }}
+          branch-suffix: short-commit-hash
+          delete-branch: true

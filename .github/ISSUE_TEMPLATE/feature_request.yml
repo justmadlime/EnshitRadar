@@ -1,0 +1,86 @@
+name: ✨ Feature Request
+description: Suggest a new feature or enhancement for EnshitRadar
+title: '[Feature]: '
+labels: ['enhancement', 'needs-triage']
+assignees:
+  - justmadlime
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! Please fill out the form below with as much detail as possible.
+
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: Feature Description
+      description: A clear and concise description of the feature you'd like to see added.
+      placeholder: Describe the feature...
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem-solution
+    attributes:
+      label: Problem and Solution
+      description: What problem does this feature solve? How would it improve the extension?
+      placeholder: |
+        **Problem**: This feature would solve...
+        **Solution**: The feature would work by...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: feature-type
+    attributes:
+      label: Feature Type
+      description: What type of feature is this?
+      options:
+        - UI/UX Improvement
+        - New Detection Method
+        - Performance Enhancement
+        - Browser Compatibility
+        - Data Management
+        - Settings/Configuration
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Low - Nice to have
+        - Medium - Would be helpful
+        - High - Important for my use case
+        - Critical - Blocking my usage
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you considered any alternative solutions or workarounds?
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context, mockups, or examples about the feature request here.
+
+  - type: checkboxes
+    id: browser-support
+    attributes:
+      label: Browser Support
+      description: Which browsers should this feature support?
+      options:
+        - label: Chrome
+          required: false
+        - label: Firefox
+          required: false
+        - label: Other browsers (please specify in additional context)
+          required: false
