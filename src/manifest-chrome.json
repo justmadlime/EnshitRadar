@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "EnshitRadar",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Detect YouTube channels compromised by private equity.",
   "background": {
     "service_worker": "background.js"

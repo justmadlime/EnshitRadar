@@ -13,6 +13,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function initializeOptions() {
   try {
+    const manifest = browser.runtime.getManifest();
+    const versionTag = document.getElementById('version-tag-options');
+    if (versionTag) {
+      versionTag.textContent = `v${manifest.version}`;
+    }
+    
     // Get store instance
     const settingsStore = useSettingsStore.getState();
     

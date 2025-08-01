@@ -22,6 +22,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   console.log('[EnshitRadar] Popup DOM loaded, initializing...');
   
   try {
+    const manifest = browser.runtime.getManifest();
+    const versionTag = document.getElementById('version-tag');
+    if (versionTag) {
+      versionTag.textContent = `v${manifest.version}`;
+    }
+    
     // Load initial settings
     await useSettingsStore.getState().loadSettings();
     

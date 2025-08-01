@@ -1,6 +1,6 @@
 {
   "name": "enshit-radar",
-  "version": "1.0.0",
+  "version": "1.2.2",
   "description": "Extension to detect YouTube channels bought by Private Equity – and More",
   "scripts": {
     "build": "webpack --mode=production",
