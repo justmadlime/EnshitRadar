@@ -2,40 +2,41 @@
 import { ExtensionMessage, MessageType, ExtensionSettings } from '@/types';
 import { setupMessageListener } from '@/utils/messaging';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { browser, type MessageSender } from '@/utils/browser';
 
 
 console.log('[EnshitRadar] 🚀 Background service worker loaded');
 
 // Initialize extension on startup
-chrome.runtime.onStartup.addListener(() => {
+browser.runtime.onStartup.addListener(() => {
   console.log('[EnshitRadar] Extension startup');
   initializeExtension();
 });
 
 // Initialize extension on installation
-chrome.runtime.onInstalled.addListener((details) => {
+browser.runtime.onInstalled.addListener((details) => {
   console.log('[EnshitRadar] Extension installed:', details.reason);
   initializeExtension();
   
   if (details.reason === 'install') {
     // Open options page on first install
-    chrome.runtime.openOptionsPage();
+    browser.runtime.openOptionsPage();
   }
 });
 
 // Clean up when extension is suspended/disabled
-chrome.runtime.onSuspend.addListener(() => {
+browser.runtime.onSuspend.addListener(() => {
   console.log('[EnshitRadar] 🧹 Extension is being suspended/disabled - cleaning up data');
   cleanupExtensionData();
 });
 
 // Clean up when extension is suspended with more explicit handling
-chrome.runtime.onSuspendCanceled.addListener(() => {
+browser.runtime.onSuspendCanceled.addListener(() => {
   console.log('[EnshitRadar] Extension suspend was canceled');
 });
 
 // Handle tab updates
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete' && tab.url) {
     console.log('[EnshitRadar] Tab updated:', tab.url);
     // Add any tab-specific logic here
@@ -43,7 +44,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 });
 
 // Handle browser action click (if no popup is set)
-chrome.action.onClicked.addListener((tab) => {
+browser.action.onClicked.addListener((tab) => {
   console.log('[EnshitRadar] Action clicked for tab:', tab.id);
   // This won't trigger if popup is set in manifest
 });
@@ -81,17 +82,17 @@ async function cleanupExtensionData() {
   try {
     console.log('[EnshitRadar] 🧹 Starting comprehensive data cleanup...');
     
-    // 1. Clear all chrome.storage data
-    await chrome.storage.sync.clear();
-    await chrome.storage.local.clear();
-    console.log('[EnshitRadar] ✅ Chrome storage cleared');
+    // 1. Clear all browser.storage data
+    await browser.storage.sync.clear();
+    await browser.storage.local.clear();
+    console.log('[EnshitRadar] ✅ Browser storage cleared');
     
     // 2. Send cleanup messages to all active tabs
-    const tabs = await chrome.tabs.query({});
+    const tabs = await browser.tabs.query({});
     const cleanupPromises = tabs.map(async (tab) => {
       if (tab.id) {
         try {
-          await chrome.tabs.sendMessage(tab.id, {
+          await browser.tabs.sendMessage(tab.id, {
             type: MessageType.CLEANUP_SESSION_DATA,
             payload: { reason: 'extension_disabled' }
           });
@@ -107,8 +108,8 @@ async function cleanupExtensionData() {
     
     // 3. Reset badge
     try {
-      await chrome.action.setBadgeText({ text: '' });
-      await chrome.action.setTitle({ title: 'EnshitRadar (Disabled)' });
+      await browser.action.setBadgeText({ text: '' });
+      await browser.action.setTitle({ title: 'EnshitRadar (Disabled)' });
     } catch (error) {
       console.debug('[EnshitRadar] Could not reset badge:', error);
     }
@@ -146,11 +147,11 @@ async function initializeExtension() {
  */
 async function cleanupStaleSessionData() {
   try {
-    const tabs = await chrome.tabs.query({});
+    const tabs = await browser.tabs.query({});
     const cleanupPromises = tabs.map(async (tab) => {
       if (tab.id) {
         try {
-          await chrome.tabs.sendMessage(tab.id, {
+          await browser.tabs.sendMessage(tab.id, {
             type: MessageType.CLEANUP_SESSION_DATA,
             payload: { reason: 'extension_startup' }
           });
@@ -175,7 +176,7 @@ async function handleGetTabInfo(tabId?: number) {
   }
   
   try {
-    const tab = await chrome.tabs.get(tabId);
+    const tab = await browser.tabs.get(tabId);
     return {
       id: tab.id,
       url: tab.url,
@@ -191,15 +192,15 @@ async function handleGetTabInfo(tabId?: number) {
 // Handle settings updates
 async function handleUpdateSettings(settings: ExtensionSettings) {
   try {
-    await chrome.storage.sync.set({ settings });
+    await browser.storage.sync.set({ settings });
     console.log('[EnshitRadar] Settings updated:', settings);
     
     // Notify all tabs about settings change
-    const tabs = await chrome.tabs.query({});
+    const tabs = await browser.tabs.query({});
     for (const tab of tabs) {
       if (tab.id) {
         try {
-          await chrome.tabs.sendMessage(tab.id, {
+          await browser.tabs.sendMessage(tab.id, {
             type: MessageType.UPDATE_SETTINGS,
             payload: settings
           });
@@ -218,14 +219,14 @@ async function handleUpdateSettings(settings: ExtensionSettings) {
 }
 
 // Handle content script loaded notification
-async function handleContentLoaded(payload: any, sender: chrome.runtime.MessageSender) {
+async function handleContentLoaded(payload: any, sender: MessageSender) {
   console.log('[EnshitRadar] Content script loaded on:', payload?.url, 'from tab:', sender.tab?.id);
   
   // Send current settings to the newly loaded content script
   try {
-    const result = await chrome.storage.sync.get(['settings']);
+    const result = await browser.storage.sync.get(['settings']);
     if (sender.tab?.id && result.settings) {
-      await chrome.tabs.sendMessage(sender.tab.id, {
+      await browser.tabs.sendMessage(sender.tab.id, {
         type: MessageType.UPDATE_SETTINGS,
         payload: result.settings
       });
@@ -254,8 +255,8 @@ async function handleToggleFeature(payload: { enabled: boolean }) {
     : [128, 128, 128, 255];
   
   try {
-    await chrome.action.setBadgeText({ text: badgeText });
-    await chrome.action.setBadgeBackgroundColor({ color: badgeColor });
+    await browser.action.setBadgeText({ text: badgeText });
+    await browser.action.setBadgeBackgroundColor({ color: badgeColor });
   } catch (error) {
     console.error('[EnshitRadar] Failed to update badge:', error);
   }
