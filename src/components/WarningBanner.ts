@@ -116,7 +116,7 @@ export class WarningBanner {
     banner.appendChild(content);
 
     // Apply styles
-    this.applyStyles(banner, config);
+    this.applyWarningStyle(banner, config);
     
     // Add event listeners
     this.addEventListeners(banner, channelRating);
@@ -126,137 +126,29 @@ export class WarningBanner {
   }
 
   /**
-   * Apply CSS styles to the banner
+   * Apply relevant styles to banner based off warning level
+   * @param banner 
+   * @param config 
    */
-  private applyStyles(banner: HTMLElement, config: WarningConfig): void {
-    // Main banner styles - full width by default (good for video pages)
-    Object.assign(banner.style, {
-      position: 'relative',
-      width: '100%',
-      backgroundColor: config.backgroundColor,
-      border: `2px solid ${config.borderColor}`,
-      borderRadius: '8px',
-      color: config.color,
-      fontFamily: 'Roboto, Arial, sans-serif',
-      fontSize: '14px',
-      lineHeight: '1.4',
-      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-      marginBottom: '16px',
-      zIndex: '10000',
-      animation: 'enshitRadarSlideIn 0.3s ease-out',
-      boxSizing: 'border-box'
-    });
+  private applyWarningStyle(banner: HTMLElement, config: WarningConfig): void {
+    banner.style.backgroundColor = config.backgroundColor
+    banner.style.borderColor = config.borderColor
+    banner.style.color = config.color
 
-    // Content container
-    const content = banner.querySelector('.enshit-radar-warning-content') as HTMLElement;
-    Object.assign(content.style, {
-      padding: '16px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '12px'
-    });
+    let closeBtn = banner.querySelector('.enshit-radar-warning-close') as HTMLElement;
+    closeBtn.style.color = config.color
 
-    // Header styles
-    const header = banner.querySelector('.enshit-radar-warning-header') as HTMLElement;
-    Object.assign(header.style, {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      fontWeight: 'bold',
-      fontSize: '16px'
-    });
+    let allActionButtons = banner.querySelectorAll('.enshit-radar-warning-actions button')
+    allActionButtons.forEach((button) => {
+      let buttonElement = button as HTMLElement
+      buttonElement.style.borderColor = config.color
+      buttonElement.style.color = config.color
+    })
 
-    // Close button
-    const closeBtn = banner.querySelector('.enshit-radar-warning-close') as HTMLElement;
-    Object.assign(closeBtn.style, {
-      marginLeft: 'auto',
-      background: 'none',
-      border: 'none',
-      cursor: 'pointer',
-      padding: '4px',
-      borderRadius: '4px',
-      color: config.color,
-      opacity: '0.7',
-      transition: 'opacity 0.2s, background-color 0.2s'
-    });
-
-    // Body styles
-    const body = banner.querySelector('.enshit-radar-warning-body') as HTMLElement;
-    Object.assign(body.style, {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '8px'
-    });
-
-    // Description
-    const description = banner.querySelector('.enshit-radar-warning-description') as HTMLElement;
-    Object.assign(description.style, {
-      margin: '0',
-      fontSize: '14px',
-      lineHeight: '1.5'
-    });
-
-    // Details
-    const details = banner.querySelector('.enshit-radar-warning-details') as HTMLElement;
-    Object.assign(details.style, {
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: '12px',
-      fontSize: '12px',
-      opacity: '0.8'
-    });
-
-    // Actions
-    const actions = banner.querySelector('.enshit-radar-warning-actions') as HTMLElement;
-    Object.assign(actions.style, {
-      display: 'flex',
-      gap: '8px',
-      marginTop: '4px'
-    });
-
-    // Style action buttons
-    const buttons = actions.querySelectorAll('button');
-    buttons.forEach((button, index) => {
-      const isLearnMore = index === 0;
-      Object.assign(button.style, {
-        padding: '6px 12px',
-        border: `1px solid ${config.borderColor}`,
-        borderRadius: '4px',
-        fontSize: '12px',
-        cursor: 'pointer',
-        transition: 'all 0.2s',
-        backgroundColor: isLearnMore ? config.color : 'transparent',
-        color: isLearnMore ? config.backgroundColor : config.color
-      });
-    });
-
-    // Add hover effects with event listeners
-    closeBtn.addEventListener('mouseenter', () => {
-      closeBtn.style.opacity = '1';
-      closeBtn.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
-    });
-    closeBtn.addEventListener('mouseleave', () => {
-      closeBtn.style.opacity = '0.7';
-      closeBtn.style.backgroundColor = 'transparent';
-    });
-
-    buttons.forEach((button, index) => {
-      const isLearnMore = index === 0;
-      button.addEventListener('mouseenter', () => {
-        if (isLearnMore) {
-          button.style.opacity = '0.9';
-        } else {
-          button.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
-        }
-      });
-      button.addEventListener('mouseleave', () => {
-        if (isLearnMore) {
-          button.style.opacity = '1';
-        } else {
-          button.style.backgroundColor = 'transparent';
-        }
-      });
-    });
+    let learnMoreButton = banner.querySelector('.enshit-radar-warning-learn-more') as HTMLElement;
+    learnMoreButton.style.borderColor = config.borderColor
+    learnMoreButton.style.backgroundColor = config.color
+    learnMoreButton.style.color = config.backgroundColor
   }
 
   /**
@@ -291,12 +183,12 @@ export class WarningBanner {
     
     // For now, show an alert with more info
     const message = `
-Channel: ${channelRating.channelName}
-Risk Level: ${channelRating.level.toUpperCase()}
-Date Added: ${channelRating.dateAdded}
-${channelRating.source ? `Source: ${channelRating.source}` : ''}
+      Channel: ${channelRating.channelName}
+      Risk Level: ${channelRating.level.toUpperCase()}
+      Date Added: ${channelRating.dateAdded}
+      ${channelRating.source ? `Source: ${channelRating.source}` : ''}
 
-This information helps you make informed decisions about the content you consume.
+      This information helps you make informed decisions about the content you consume.
     `.trim();
     
     alert(message);
@@ -368,7 +260,16 @@ This information helps you make informed decisions about the content you consume
 
     let targetContainer: Element | null = null;
 
-        if (pageType === 'channel') {
+    if (pageType === 'channel') {
+      
+      // Primary Method of showing banner
+      let channelBannerElement = document.querySelector('#wrapper > #contentContainer')
+      if (channelBannerElement) {
+        channelBannerElement.appendChild(this.element);
+        this.setChannelPageStyles();
+        return true
+      }
+
       // More comprehensive selectors for both direct loads and SPA navigation
       const channelHeaderSelectors = [
         // New YouTube layout (direct load)
@@ -401,7 +302,7 @@ This information helps you make informed decisions about the content you consume
         // Insert the banner above the entire channel header
         channelHeaderElement.parentNode.insertBefore(this.element, channelHeaderElement);
         // Only adjust width for channel pages
-        this.adjustChannelBannerWidth();
+        this.setChannelPageStyles();
         return true;
       }
       
@@ -437,7 +338,7 @@ This information helps you make informed decisions about the content you consume
             }
           }
           
-          this.adjustChannelBannerWidth();
+          this.setChannelPageStyles();
           return true;
         }
       }
@@ -478,7 +379,7 @@ This information helps you make informed decisions about the content you consume
   /**
    * Adjust banner width on channel pages to be properly sized and centered
    */
-  private adjustChannelBannerWidth(): void {
+  private setChannelPageStyles(): void {
     if (!this.element) return;
     
     // Make the banner appropriately sized and centered
@@ -488,52 +389,8 @@ This information helps you make informed decisions about the content you consume
       marginLeft: 'auto',
       marginRight: 'auto',
       marginTop: '16px',
-      boxSizing: 'border-box'
+      boxSizing: 'border-box',
+      top: '-100%',
     });
   }
 }
-
-/**
- * Add CSS animations to the page
- */
-export function addWarningStyles(): void {
-  const styleId = 'enshit-radar-warning-styles';
-  
-  if (document.getElementById(styleId)) return;
-
-  const style = document.createElement('style');
-  style.id = styleId;
-  style.textContent = `
-    @keyframes enshitRadarSlideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    @keyframes enshitRadarSlideOut {
-      from {
-        opacity: 1;
-        transform: translateY(0);
-      }
-      to {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-    }
-    
-    .enshit-radar-warning {
-      font-family: Roboto, Arial, sans-serif !important;
-    }
-    
-    .enshit-radar-warning * {
-      box-sizing: border-box;
-    }
-  `;
-  
-  document.head.appendChild(style);
-} 

@@ -15,6 +15,7 @@
         "*://m.youtube.com/*"
       ],
       "js": ["youtube.js"],
+      "css": ["bannerstyle.css"],
       "run_at": "document_end",
       "all_frames": false
     }
