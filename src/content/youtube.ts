@@ -113,7 +113,7 @@ function handleYouTubePageChange(pageInfo: YouTubePageInfo) {
 function checkChannelAndShowWarnings(pageInfo: YouTubePageInfo) {
   // TODO: remove redundant check, better typing?
   if (!(pageInfo.pageType === 'channel' || pageInfo.pageType === 'video')) {
-    return
+    return;
   }
 
   console.debug('[EnshitRadar] 🔍 Checking channel info:', pageInfo);
@@ -372,7 +372,7 @@ function addFloatingButton() {
   const button = document.createElement('button');
   button.id = 'extension-floating-button';
   button.className = 'extension-floating-button';
-  button.innerHTML = '🔍';
+  button.textContent = '🔍';
   button.title = 'EnshitRadar';
   
   button.addEventListener('click', () => {

@@ -21,31 +21,99 @@ export class WarningBanner {
     banner.setAttribute('data-channel-id', channelRating.channelId || '');
     banner.setAttribute('data-level', config.level);
     
-    banner.innerHTML = `
-      <div class="enshit-radar-warning-content">
-        <div class="enshit-radar-warning-header">
-          <span class="enshit-radar-warning-icon">${config.icon}</span>
-          <span class="enshit-radar-warning-title">${config.title}</span>
-          <button class="enshit-radar-warning-close" aria-label="Close warning">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
-              <path d="M13 1L1 13M1 1l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </button>
-        </div>
-        <div class="enshit-radar-warning-body">
-          <p class="enshit-radar-warning-description">${config.description}</p>
-          <div class="enshit-radar-warning-details">
-            <span class="enshit-radar-warning-channel">Channel: ${channelRating.channelName}</span>
-            <span class="enshit-radar-warning-level">Level: ${config.level.toUpperCase()}</span>
-            ${channelRating.source ? `<span class="enshit-radar-warning-source">Source: ${channelRating.source}</span>` : ''}
-          </div>
-        </div>
-        <div class="enshit-radar-warning-actions">
-          <button class="enshit-radar-warning-learn-more">Learn More</button>
-          <button class="enshit-radar-warning-dismiss">Dismiss for Session</button>
-        </div>
-      </div>
-    `;
+    // Create DOM structure safely without innerHTML to prevent XSS attacks
+    // All user data is properly escaped using textContent instead of innerHTML
+    const content = document.createElement('div');
+    content.className = 'enshit-radar-warning-content';
+    
+    // Header section
+    const header = document.createElement('div');
+    header.className = 'enshit-radar-warning-header';
+    
+    const icon = document.createElement('span');
+    icon.className = 'enshit-radar-warning-icon';
+    icon.textContent = config.icon;
+    
+    const title = document.createElement('span');
+    title.className = 'enshit-radar-warning-title';
+    title.textContent = config.title;
+    
+    const closeButton = document.createElement('button');
+    closeButton.className = 'enshit-radar-warning-close';
+    closeButton.setAttribute('aria-label', 'Close warning');
+    
+    // Create SVG for close button safely
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', '14');
+    svg.setAttribute('height', '14');
+    svg.setAttribute('viewBox', '0 0 14 14');
+    svg.setAttribute('fill', 'currentColor');
+    
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', 'M13 1L1 13M1 1l12 12');
+    path.setAttribute('stroke', 'currentColor');
+    path.setAttribute('stroke-width', '2');
+    path.setAttribute('stroke-linecap', 'round');
+    
+    svg.appendChild(path);
+    closeButton.appendChild(svg);
+    
+    header.appendChild(icon);
+    header.appendChild(title);
+    header.appendChild(closeButton);
+    
+    // Body section
+    const body = document.createElement('div');
+    body.className = 'enshit-radar-warning-body';
+    
+    const description = document.createElement('p');
+    description.className = 'enshit-radar-warning-description';
+    description.textContent = config.description;
+    
+    const details = document.createElement('div');
+    details.className = 'enshit-radar-warning-details';
+    
+    const channelSpan = document.createElement('span');
+    channelSpan.className = 'enshit-radar-warning-channel';
+    channelSpan.textContent = `Channel: ${channelRating.channelName}`;
+    
+    const levelSpan = document.createElement('span');
+    levelSpan.className = 'enshit-radar-warning-level';
+    levelSpan.textContent = `Level: ${config.level.toUpperCase()}`;
+    
+    details.appendChild(channelSpan);
+    details.appendChild(levelSpan);
+    
+    if (channelRating.source) {
+      const sourceSpan = document.createElement('span');
+      sourceSpan.className = 'enshit-radar-warning-source';
+      sourceSpan.textContent = `Source: ${channelRating.source}`;
+      details.appendChild(sourceSpan);
+    }
+    
+    body.appendChild(description);
+    body.appendChild(details);
+    
+    // Actions section
+    const actions = document.createElement('div');
+    actions.className = 'enshit-radar-warning-actions';
+    
+    const learnMoreButton = document.createElement('button');
+    learnMoreButton.className = 'enshit-radar-warning-learn-more';
+    learnMoreButton.textContent = 'Learn More';
+    
+    const dismissButton = document.createElement('button');
+    dismissButton.className = 'enshit-radar-warning-dismiss';
+    dismissButton.textContent = 'Dismiss for Session';
+    
+    actions.appendChild(learnMoreButton);
+    actions.appendChild(dismissButton);
+    
+    // Assemble the complete structure
+    content.appendChild(header);
+    content.appendChild(body);
+    content.appendChild(actions);
+    banner.appendChild(content);
 
     // Apply styles
     this.applyStyles(banner, config);
