@@ -6,7 +6,8 @@ A Chrome extension that detects YouTube channels compromised by private equity o
 
 ## 🔗 Quick Links
 
-- **🏪 [Chrome Web Store](https://chromewebstore.google.com/detail/enshitradar/gojaionacndbadgpkhddjhfcbppfkplk?authuser=1&hl=en-GB)** - Install the extension
+- **🏪 [Chrome Web Store](https://chromewebstore.google.com/detail/enshitradar/gojaionacndbadgpkhddjhfcbppfkplk?authuser=1&hl=en-GB)** - Install the extension for Chrome
+- **🦊 [Firefox Web Store](https://addons.mozilla.org/en-US/firefox/addon/enshitradar/)** - Install the extension for Firefox
 - **💬 [Discord Community](https://discord.gg/brCNpJcx)** - Join to discuss and propose new ideas
 - **📺 [YouTube Channel](https://www.youtube.com/@justmadlime)** - Updates & tutorials
 - **🚀 [Submit Channel](https://github.com/justmadlime/EnshitRadar/tree/main)** - Add new channels via PR
@@ -23,7 +24,13 @@ A Chrome extension that detects YouTube channels compromised by private equity o
 2. **Start**: Click the EnshitRadar icon in your toolbar (enabled by default)
 3. **Use**: Visit any YouTube channel or video - warnings appear automatically
 
-#### **Method 2: Manual Installation**
+#### **Method 2: Firefox Web Store** (Recommended when available)
+
+1. **Install**: Visit [Firefox AddOns Store](https://addons.mozilla.org/en-US/firefox/addon/enshitradar/) → "Add to Firefox"
+2. **Start**: Click the EnshitRadar icon in your toolbar (enabled by default)
+3. **Use**: Visit any YouTube channel or video - warnings appear automatically
+
+#### **Method 3: Manual Installation**
 
 1. **Download**:
    - Go to [Releases](https://github.com/justmadlime/EnshitRadar/releases) → Download latest `.zip` file
