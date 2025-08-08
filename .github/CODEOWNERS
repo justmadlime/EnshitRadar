@@ -1,0 +1,16 @@
+# Global owners
+* @justmadlime
+
+# Core extension files
+src/manifest-*.json @justmadlime
+src/background/ @justmadlime
+src/content/ @justmadlime
+
+# Build and CI
+webpack.config.js @justmadlime
+.github/ @justmadlime
+package.json @justmadlime
+pnpm-lock.yaml @justmadlime
+
+# Documentation
+*.md @justmadlime 
